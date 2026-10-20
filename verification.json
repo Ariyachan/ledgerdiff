@@ -1,0 +1,121 @@
+{
+  "verified_at": "2026-10-20T08:37:28.788424+00:00",
+  "project": "LedgerDiff web workspace",
+  "source_commit": "43817f607c28cb79b8a77a3407d85ac95b234122",
+  "status": "core_functionality_and_real_postgresql_verified_browser_review_pending_coordinator",
+  "runtime": {
+    "node": "22.18.0",
+    "npm": "10.9.3",
+    "postgresql": "18.4, x86_64-windows, msvc-19.44.35226",
+    "api": "http://localhost:4200",
+    "web": "http://localhost:5174",
+    "api_health": {
+      "status": "ok",
+      "database": "connected"
+    },
+    "web_http_status": 200,
+    "api_process_session": 99547,
+    "vite_process_session": 69888
+  },
+  "checks": [
+    {
+      "command": "npm run typecheck",
+      "passed": true,
+      "log": "test-results/typecheck.txt"
+    },
+    {
+      "command": "npm test",
+      "passed": true,
+      "tests": 8,
+      "failed": 0,
+      "log": "test-results/core.txt"
+    },
+    {
+      "command": "npm run test:integration",
+      "passed": true,
+      "tests": 1,
+      "failed": 0,
+      "database_substitution": false,
+      "log": "test-results/integration.txt",
+      "coverage": [
+        "actual HTTP requests",
+        "PostgreSQL row readback",
+        "example record counts",
+        "leading-zero/large IDs and missing/empty values persisted",
+        "name/notes edit",
+        "CSV/JSON attachments",
+        "duplicate key and uneven-row errors",
+        "8MiB rejection",
+        "two independent cookie sessions",
+        "other-session read/update/delete/export rejected",
+        "app recreated with same persisted session cookie",
+        "delete and database absence"
+      ]
+    },
+    {
+      "command": "npm run build",
+      "passed": true,
+      "log": "test-results/build.txt"
+    },
+    {
+      "command": "docker compose config --no-interpolate --quiet",
+      "passed": true,
+      "meaning": "Configuration syntax validation only; standalone Docker image/stack was not built or launched."
+    },
+    {
+      "command": "git diff --cached --check",
+      "passed": true
+    },
+    {
+      "command": "git check-ignore .env",
+      "passed": true,
+      "meaning": "Real local connection and session secret are excluded from Git."
+    }
+  ],
+  "core_boundary_cases": [
+    "quoted comma and escaped double quotes",
+    "quoted CRLF/newline",
+    "semicolon/tab detection",
+    "strings preserve leading zeros/large IDs/whitespace",
+    "missing column null versus empty string",
+    "row and column reordering",
+    "empty datasets",
+    "duplicate and empty keys",
+    "duplicate and empty headers",
+    "uneven row width",
+    "unclosed quotes",
+    "8MiB exact boundary accepted and +1 byte rejected",
+    "formula-like CSV fields escaped with missing flags"
+  ],
+  "browser_review": {
+    "performed_by_this_worker": false,
+    "reason": "This worker cua inventory is empty. The coordinator owns actual browser review. No screenshot or visual success is fabricated.",
+    "coordinator_requested_checks": [
+      "sample comparison real save",
+      "refresh persisted report",
+      "rename and notes",
+      "search and type filters",
+      "mobile layout",
+      "download artifacts"
+    ],
+    "screenshot_directory": "screenshots/"
+  },
+  "privacy_and_scope": {
+    "example_data_only": true,
+    "real_customer_data_uploaded": false,
+    "public_publishing": false,
+    "external_customer_sends": false,
+    "separate_project": true,
+    "old_file_modified_by_worker": false,
+    "legacy_file_sha256_observed_at_end": "7f6c358dc2cc1afb36b39a7b1be8db793b5bbf42a5a5b9a545164105ed745ca7",
+    "credentials_in_git": false
+  },
+  "limitations": [
+    "Anonymous cookie workspace, not a durable account or cross-device sign-in.",
+    "Latest100 report summaries are listed.",
+    "No public deployment or operational backup/production load claim.",
+    "Optional standalone Compose stack supplied and syntax-checked but not runtime-verified.",
+    "Server stores report values; original source CSV files are not retained separately.",
+    "Browser visual/interaction review remains for the coordinator and must be updated only from actual evidence."
+  ]
+}
