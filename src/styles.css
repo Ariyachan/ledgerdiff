@@ -135,6 +135,14 @@ textarea::placeholder {
   background: #607b55;
   margin-right: 6px;
 }
+.workspace-status-short {
+  display: none;
+}
+.recovery-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
 main {
   max-width: 1450px;
   padding: 0 4vw;
@@ -1291,6 +1299,58 @@ footer b {
   }
   .pagination {
     font-size: 8px;
+  }
+}
+@media (max-width: 540px) {
+  .files {
+    grid-template-columns: 1fr;
+  }
+  .file-panel {
+    padding: 18px 20px;
+  }
+  .file-panel h2 span {
+    display: inline;
+  }
+  .file-picker {
+    flex-wrap: nowrap;
+    align-items: center;
+  }
+  .file-picker > div {
+    flex: 1;
+  }
+  .file-symbol {
+    display: grid;
+    width: 34px;
+    min-width: 34px;
+    height: 42px;
+  }
+  .file-picker label {
+    margin-top: 0;
+  }
+  .file-meta {
+    flex-direction: row;
+    align-items: center;
+  }
+  .file-meta select {
+    width: 185px;
+    max-width: calc(100% - 65px);
+  }
+  .file-foot {
+    flex-direction: row;
+    font-size: 10px;
+  }
+  .header-right {
+    max-width: none;
+    flex-shrink: 0;
+    white-space: nowrap;
+    font-size: 10px;
+    gap: 2px;
+  }
+  .workspace-status-long {
+    display: none;
+  }
+  .workspace-status-short {
+    display: inline;
   }
 }
 @media (max-width: 380px) {

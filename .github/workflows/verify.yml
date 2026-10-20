@@ -1,0 +1,49 @@
+name: Verify LedgerDiff
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    services:
+      postgres:
+        image: postgres:18.4-alpine
+        env:
+          POSTGRES_DB: ledgerdiff_ci
+          POSTGRES_USER: ledgerdiff_ci
+          # Disposable public CI fixture, never a deployed database credential.
+          POSTGRES_PASSWORD: ci_fixture_only
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U ledgerdiff_ci -d ledgerdiff_ci"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
+    env:
+      DATABASE_URL: postgresql://ledgerdiff_ci:ci_fixture_only@127.0.0.1:5432/ledgerdiff_ci
+      WEB_ORIGIN: http://localhost:5174
+      COOKIE_SECURE: "false"
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v7
+        with:
+          node-version: "22.18.0"
+          cache: npm
+      - name: Generate ephemeral session secret
+        run: node --input-type=module -e "import {randomBytes} from 'node:crypto'; import {appendFileSync} from 'node:fs'; appendFileSync(process.env.GITHUB_ENV, 'SESSION_SECRET=' + randomBytes(32).toString('hex') + '\n');"
+      - run: npm ci --no-fund
+      - run: npm run db:migrate
+      - run: npm run typecheck
+      - run: npm test
+      - run: npm run test:integration
+      - run: npm run build

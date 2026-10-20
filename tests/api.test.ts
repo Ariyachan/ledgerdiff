@@ -1,7 +1,8 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import type { AddressInfo } from "node:net";
-import { randomBytes } from "node:crypto";
+import { randomBytes, randomUUID } from "node:crypto";
+import { loadWorkspace } from "../src/workspace";
 import { createPool, migrate } from "../server/db";
 import { createApp } from "../server/app";
 import { example } from "../shared/example";
@@ -36,6 +37,7 @@ test("real HTTP + PostgreSQL: create/read/update/export/isolation/delete and app
     });
   let id: string | undefined;
   let edgeId: string | undefined;
+  const historyFixtureIds: string[] = [];
   try {
     const health = await request("/api/health");
     assert.equal((await health.json()).database, "connected");
@@ -76,6 +78,35 @@ test("real HTTP + PostgreSQL: create/read/update/export/isolation/delete and app
     });
     assert.equal(updated.status, 200);
     assert.equal((await updated.json()).name, "Month-end review");
+    const historyFixtures = await pool.query<{ id: string }>(
+      `INSERT INTO ledgerdiff_reports(id, owner_sid, name, key_column, before_filename, after_filename, result, created_at)
+       SELECT gen_random_uuid(), owner_sid, 'History fixture ' || n, key_column, before_filename, after_filename, result,
+         created_at + n * interval '1 second'
+       FROM ledgerdiff_reports CROSS JOIN generate_series(1, 101) AS n WHERE id = $1 RETURNING id`,
+      [id],
+    );
+    historyFixtureIds.push(...historyFixtures.rows.map((row) => row.id));
+    const readWorkspace = async <T>(path: string): Promise<T> => {
+      const response = await request(path);
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      return response.json() as Promise<T>;
+    };
+    const restoredOlder = await loadWorkspace(id, readWorkspace);
+    assert.equal(restoredOlder.reports.length, 100);
+    assert.equal(
+      restoredOlder.reports.some((item) => item.id === id),
+      false,
+    );
+    assert.equal(restoredOlder.report?.id, id);
+    assert.equal(restoredOlder.report?.name, "Month-end review");
+    await assert.rejects(
+      () => loadWorkspace(randomUUID(), readWorkspace),
+      /HTTP 404/,
+    );
+    await assert.rejects(
+      () => loadWorkspace("../session", readWorkspace),
+      /HTTP 404/,
+    );
     const edgeCreated = await request("/api/comparisons", {
       method: "POST",
       body: JSON.stringify({
@@ -226,6 +257,11 @@ test("real HTTP + PostgreSQL: create/read/update/export/isolation/delete and app
       await pool.query("DELETE FROM ledgerdiff_reports WHERE id=$1", [id]);
     if (edgeId)
       await pool.query("DELETE FROM ledgerdiff_reports WHERE id=$1", [edgeId]);
+    if (historyFixtureIds.length)
+      await pool.query(
+        "DELETE FROM ledgerdiff_reports WHERE id = ANY($1::uuid[])",
+        [historyFixtureIds],
+      );
     if (server.listening)
       await new Promise<void>((resolve, reject) =>
         server.close((error) => (error ? reject(error) : resolve())),

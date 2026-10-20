@@ -2,11 +2,19 @@
 
 A CSV comparison workspace with an actual React interface, Node API and PostgreSQL persistence. Match snapshots by one unique key, review field changes and keep a named report with notes. This is one independent, self-initiated portfolio project using fictional example orders, not a client engagement or accounting certification.
 
+![Saved comparison report on desktop](screenshots/desktop-report.png)
+
+<details><summary>Mobile report at 390 px</summary>
+
+![Mobile upload and comparison report](screenshots/mobile-report.png)
+
+</details>
+
 The existing offline `../ledgerdiff/LedgerDiff.html` supplied the problem, visual direction and sample orders. It remains unchanged. This edition uses PapaParse rather than the old hand-written parser and adds a real API, session separation and persisted reports.
 
 ## Run locally
 
-Requires Node.js **22.12+**, npm and PostgreSQL. The checked-in `package-lock.json` fixes the installed dependency tree.
+Requires Node.js **22.18+**, npm and PostgreSQL. The checked-in `package-lock.json` fixes the installed dependency tree. `.nvmrc` records the verified local/CI Node version.
 
 ```powershell
 npm ci
@@ -79,6 +87,8 @@ npm run test:integration
 npm run build
 ```
 
-Core tests cover exact counts, quoted separators/newlines, leading zeros, large IDs, schema changes, empty versus missing values, uneven columns, duplicate headers/keys, empty keys, file size, empty datasets and CSV export. Integration tests require `DATABASE_URL`; they use real HTTP and PostgreSQL without a substitute database. They check persistence, session isolation for read/update/delete/export, edits, exports, invalid input, 8 MiB rejection, and reading with the same cookie after recreating the app. Test reports are removed in cleanup. Tests use ephemeral HTTP ports and do not take over the running preview.
+Core tests cover exact counts, quoted separators/newlines, leading zeros, large IDs, schema changes, empty versus missing values, uneven columns, duplicate headers/keys, empty keys, file size, empty datasets and CSV export. Integration tests require `DATABASE_URL`; they use real HTTP and PostgreSQL without a substitute database. They check persistence, session isolation for read/update/delete/export, edits, exports, invalid input, 8 MiB rejection, and reading with the same cookie after recreating the app. A regression creates 101 newer reports and verifies that an older report's direct URL still opens that exact report even when it is outside recent history; missing and malformed IDs fail explicitly. Test reports are removed in cleanup. Tests use ephemeral HTTP ports and do not take over the running preview.
 
 See `docs/sources.md` for the official library references consulted before implementation and `verification.json` for the actual local check results. Browser screenshots, when available, are in `screenshots/`; screenshots are supporting evidence, not a substitute for persistence tests.
+
+`.github/workflows/verify.yml` runs the same checks on Node 22.18.0 with a real PostgreSQL 18.4 service container for pushes, pull requests and manual runs. Its database credentials are disposable public CI fixtures; the session secret is generated randomly for each run. It needs no deployment or local database secrets. Adding the file does not prove a hosted run passed; inspect the actual Actions result after pushing to an authorized repository.

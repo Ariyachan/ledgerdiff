@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, type ChangeEvent } from "react";
 import { MAX_FILE_BYTES, parseCsv } from "../shared/comparison";
 import { example } from "../shared/example";
+import { loadWorkspace } from "./workspace";
 import type {
   Change,
   ChangeType,
@@ -35,11 +36,9 @@ async function api<T>(url: string, options?: RequestInit): Promise<T> {
     );
   });
   if (!response.ok) {
-    const body = await response
-      .json()
-      .catch(() => ({
-        error: `Request failed (${response.status}). Please try again.`,
-      }));
+    const body = await response.json().catch(() => ({
+      error: `Request failed (${response.status}). Please try again.`,
+    }));
     throw new Error(body.error || "The request could not be completed.");
   }
   if (response.status === 204) return undefined as T;
@@ -239,19 +238,15 @@ export function App() {
     setLoading(true);
     setError("");
     try {
-      await api("/api/session");
-      const response = await api<{ reports: ReportSummary[] }>(
-        "/api/comparisons",
-      );
       const requested = new URLSearchParams(window.location.search).get(
         "report",
       );
-      const id =
-        response.reports.find((report) => report.id === requested)?.id ??
-        response.reports[0]?.id;
-      const report = id ? await api<Report>(`/api/comparisons/${id}`) : null;
+      const { reports: savedReports, report } = await loadWorkspace(
+        requested,
+        api,
+      );
       if (version === loadVersion.current) {
-        setReports(response.reports);
+        setReports(savedReports);
         selectReport(report);
         setReady(true);
       }
@@ -434,7 +429,10 @@ export function App() {
         </a>
         <div className="header-right">
           <span className="workspace-dot" />
-          Your comparison workspace
+          <span className="workspace-status-long">
+            Your comparison workspace
+          </span>
+          <span className="workspace-status-short">Your workspace</span>
         </div>
       </header>
       <main>
@@ -473,13 +471,29 @@ export function App() {
             <strong>Let's get this sorted.</strong>
             <p>{error}</p>
             {!ready && (
-              <button
-                className="button compact"
-                onClick={() => void initialize()}
-                disabled={loading}
-              >
-                Retry connection
-              </button>
+              <div className="recovery-actions">
+                <button
+                  className="button compact"
+                  onClick={() => void initialize()}
+                  disabled={loading}
+                >
+                  Retry connection
+                </button>
+                {new URLSearchParams(window.location.search).has("report") && (
+                  <button
+                    className="button compact"
+                    disabled={loading}
+                    onClick={() => {
+                      const url = new URL(window.location.href);
+                      url.searchParams.delete("report");
+                      window.history.replaceState(null, "", url);
+                      void initialize();
+                    }}
+                  >
+                    Open workspace
+                  </button>
+                )}
+              </div>
             )}
           </div>
         )}
