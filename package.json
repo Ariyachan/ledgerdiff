@@ -1,0 +1,44 @@
+{
+  "name": "ledgerdiff-web",
+  "version": "2.0.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=22.12"
+  },
+  "scripts": {
+    "dev": "vite --host 127.0.0.1 --port 5174 --strictPort",
+    "dev:api": "node --env-file-if-exists=.env --import tsx --watch server/index.ts",
+    "start": "node --env-file-if-exists=.env --import tsx server/index.ts",
+    "db:migrate": "node --env-file-if-exists=.env --import tsx server/migrate.ts",
+    "typecheck": "tsc --noEmit",
+    "build": "tsc --noEmit && vite build",
+    "test": "node --import tsx --test tests/core.test.ts",
+    "test:integration": "node --env-file-if-exists=.env --import tsx --test tests/api.test.ts"
+  },
+  "dependencies": {
+    "connect-pg-simple": "^10.0.0",
+    "express": "^5.1.0",
+    "express-session": "^1.18.2",
+    "papaparse": "^5.5.3",
+    "pg": "^8.16.3",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0",
+    "zod": "^4.1.12"
+  },
+  "devDependencies": {
+    "@types/connect-pg-simple": "^7.0.3",
+    "@types/express": "^5.0.3",
+    "@types/express-session": "^1.18.2",
+    "@types/node": "^22.18.0",
+    "@types/papaparse": "^5.3.16",
+    "@types/pg": "^8.15.5",
+    "@types/react": "^19.2.0",
+    "@types/react-dom": "^19.2.0",
+    "@vitejs/plugin-react": "^5.0.4",
+    "prettier": "^3.9.10",
+    "tsx": "^4.20.6",
+    "typescript": "~5.9.3",
+    "vite": "^7.1.9"
+  }
+}
