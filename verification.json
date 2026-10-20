@@ -1,8 +1,8 @@
 {
-  "verified_at": "2026-10-20T08:37:28.788424+00:00",
+  "verified_at": "2026-10-20T08:45:27.453297+00:00",
   "project": "LedgerDiff web workspace",
-  "source_commit": "43817f607c28cb79b8a77a3407d85ac95b234122",
-  "status": "core_functionality_and_real_postgresql_verified_browser_review_pending_coordinator",
+  "source_commit": "3c69431edbc56325b7d00157d5758fb3846363f5",
+  "status": "local_implementation_api_postgresql_and_browser_verified_no_public_deployment",
   "runtime": {
     "node": "22.18.0",
     "npm": "10.9.3",
@@ -49,7 +49,9 @@
         "two independent cookie sessions",
         "other-session read/update/delete/export rejected",
         "app recreated with same persisted session cookie",
-        "delete and database absence"
+        "delete and database absence",
+        "older deep link beyond recent100 history",
+        "missing and malformed deep links reject instead of redirecting"
       ]
     },
     {
@@ -88,17 +90,27 @@
     "formula-like CSV fields escaped with missing flags"
   ],
   "browser_review": {
-    "performed_by_this_worker": false,
-    "reason": "This worker cua inventory is empty. The coordinator owns actual browser review. No screenshot or visual success is fabricated.",
-    "coordinator_requested_checks": [
-      "sample comparison real save",
-      "refresh persisted report",
-      "rename and notes",
-      "search and type filters",
-      "mobile layout",
-      "download artifacts"
+    "performed": true,
+    "performed_by": "root coordinator using Cua, with screenshots inspected by this worker",
+    "checks_passed": [
+      "desktop visual review",
+      "fictional sample comparison saved",
+      "report name and notes saved",
+      "refresh restored saved title",
+      "search ORD-003",
+      "Changed filter",
+      "actual CSV attachment downloaded and content checked",
+      "390px mobile stacked upload cards and short header"
     ],
-    "screenshot_directory": "screenshots/"
+    "mobile_dimensions": {
+      "innerWidth": 390,
+      "documentScrollWidth": 390
+    },
+    "screenshots": [
+      "screenshots/desktop-report.png",
+      "screenshots/mobile-report.png"
+    ],
+    "limits": "JSON export and delete verified by actual API/PG tests, not claimed as separately browser-clicked. Older deep-link regression verified through the same workspace loader against real HTTP/PG with 101 newer reports."
   },
   "privacy_and_scope": {
     "example_data_only": true,
@@ -116,6 +128,35 @@
     "No public deployment or operational backup/production load claim.",
     "Optional standalone Compose stack supplied and syntax-checked but not runtime-verified.",
     "Server stores report values; original source CSV files are not retained separately.",
-    "Browser visual/interaction review remains for the coordinator and must be updated only from actual evidence."
-  ]
+    "GitHub CI is configured and syntax-checked; a hosted passing run has not yet been observed."
+  ],
+  "ci": {
+    "workflow": ".github/workflows/verify.yml",
+    "node": "22.18.0",
+    "service_image": "postgres:18.4-alpine",
+    "configured_checks": [
+      "npm ci",
+      "db:migrate",
+      "typecheck",
+      "core tests",
+      "real PostgreSQL integration",
+      "build"
+    ],
+    "database_credentials": "public disposable CI fixture, no local/deployed credentials",
+    "session_secret": "randomBytes(32) generated separately for each run",
+    "yaml_syntax_checked": true,
+    "hosted_run_executed": false,
+    "reason": "No repository push or hosted Actions run performed by this worker."
+  },
+  "regressions": [
+    {
+      "problem": "Older report URL silently selected latest report when outside recent100 list.",
+      "fix": "Initialize directly reads requested report ID regardless of recent list; encodeURIComponent keeps malformed IDs within the report endpoint. Missing IDs explicitly error with a workspace-recovery action.",
+      "proof": "Real HTTP/PG integration creates101 newer reports, confirms requested old ID absent from list but returns the exact old report; non-existing UUID and ../session fail404."
+    }
+  ],
+  "screenshot_sha256": {
+    "screenshots/desktop-report.png": "71f8e4a135504c8c338c64451d8b7d04071a96ec0b00824ca5dead5103c7e6a1",
+    "screenshots/mobile-report.png": "91620cb76ea1bba5184126a0db8e86131d16524f82616eab6b7975dd1b002d29"
+  }
 }
